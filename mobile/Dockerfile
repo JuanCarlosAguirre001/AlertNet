@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 19000 19001 19002
 
-CMD [ "npx", "expo", "start"]
+CMD [ "npx", "expo", "start", "0.0.0.0:8000"]
