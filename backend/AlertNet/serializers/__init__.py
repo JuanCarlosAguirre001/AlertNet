@@ -1,5 +1,5 @@
 from .usuarioSerializer import UsuarioSerializer
-from .ubicacionSerializer import UbicacionSerializer
 from .alertaSerializer import AlertaSerializer
 from .notificacionSerializer import NotificacionSerializer
-from .contactoSerializer import ContactoSerializer
+from .contactoSerializer import ContactoSerializer, ContactoListSerializer
+from .configuracion_emergencia import ConfigEmergenciaSerializer

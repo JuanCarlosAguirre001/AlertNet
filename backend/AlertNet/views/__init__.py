@@ -1,13 +1,13 @@
 from .usuario_view import UsuarioViewSet
-from .ubicacion_view import UbicacionViewSet
 from .notificacion_view import NotificacionViewSet
-from .contacto_view import ContactoViewSet
+from .contacto_view import ContactoListCreateAPIView, ContactoDetailAPIView
 from .alerta_view import AlertaViewSet
+# from .configuracion_emergencia import ConfigEmergenciaSerializer
 
 __all__ = [
     'UsuarioViewSet',
-    'UbicacionViewSet',
     'AlertaViewSet',
     'NotificacionViewSet',
-    'ContactoViewSet',
+    'ContactoListCreateAPIView',
+    'ContactoDetailAPIView',
 ]

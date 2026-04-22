@@ -1,13 +1,17 @@
 from django.db import models
-from .usuario import Usuario
 from .alerta import Alerta
+from .contacto import Contacto
+
+
+
 
 class Notificacion(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    alerta = models.ForeignKey(Alerta, on_delete=models.CASCADE)
-    mensaje = models.TextField()
-    leido = models.BooleanField(default=False)
-    fecha = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Notificación para {self.usuario}"
+    alerta = models.ForeignKey(Alerta, on_delete=models.CASCADE) 
+    contacto = models.ForeignKey(Contacto, on_delete=models.CASCADE) 
+    medio = models.CharField(max_length=20) # 'SMS', 'WhatsApp', 'Push' [cite: 13]
+    entregado = models.BooleanField(default=False)
+    
+    class Meta:
+        db_table = "notificaciones"
+        
+    

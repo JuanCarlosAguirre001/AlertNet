@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,53 +8,99 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Background from "../src/components/Background";
 import Header from "../src/components/Header";
 
+// Service
+import { authService } from "../services/authService";
+
 export default function LoginEmail() {
   const router = useRouter();
+
+  const [correo, setCorreo] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!correo.trim() || !password.trim()) {
+      Alert.alert("Campos incompletos", "Por favor llena correo y contraseña.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const user = await authService.login(
+        correo.trim().toLowerCase(),
+        password.trim()
+      );
+
+      console.log("RESPUESTA LOGIN:", user);
+
+      const usuarioGuardado = await authService.getCurrentUser();
+      console.log("USUARIO JUSTO ANTES DE NAVEGAR LOGIN:", usuarioGuardado);
+
+      if (!usuarioGuardado) {
+        Alert.alert("Error", "No se pudo guardar la sesión del usuario.");
+        return;
+      }
+
+      Alert.alert("Éxito", "Inicio de sesión correcto.");
+      router.replace("/contacts");
+    } catch (error) {
+      console.log("ERROR LOGIN SCREEN:", error);
+
+      if (error?.message) {
+        Alert.alert("Error", error.message);
+      } else {
+        Alert.alert("Error", "No se pudo iniciar sesión.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Background>
       <View style={styles.safeContainer}>
-        
-        {/* Header mantiene el logo/nombre arriba a la izquierda */}
         <Header />
 
         <View style={styles.content}>
           <Text style={styles.mainTitle}>Iniciar Sesión</Text>
 
-          {/* CONTENEDOR TRASLÚCIDO (Card) */}
           <View style={styles.card}>
-            
-            {/* INPUT CORREO */}
             <View style={styles.inputContainer}>
-              <TextInput 
-                placeholder="Correo" 
+              <TextInput
+                placeholder="Correo"
                 placeholderTextColor="#949494"
                 style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={correo}
+                onChangeText={setCorreo}
               />
             </View>
 
-            {/* INPUT CONTRASEÑA */}
             <View style={styles.inputContainer}>
-              <TextInput 
-                placeholder="Contraseña" 
+              <TextInput
+                placeholder="Contraseña"
                 placeholderTextColor="#949494"
-                secureTextEntry={true}
+                secureTextEntry={!showPassword}
                 style={styles.input}
+                value={password}
+                onChangeText={setPassword}
               />
-              <TouchableOpacity>
-                <Ionicons name="eye" size={24} color="#CCC" />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#CCC" />
               </TouchableOpacity>
             </View>
 
-            {/* OLVIDASTE CONTRASEÑA */}
             <TouchableOpacity style={styles.forgotPassword}>
               <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 
-            {/* BOTÓN INICIAR SESIÓN CON GRADIENTE */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.buttonWrapper}
-              onPress={() => router.push("/contacts")}
+              onPress={handleLogin}
+              disabled={loading}
             >
               <LinearGradient
                 colors={['#4A1414', '#B42424']}
@@ -62,11 +108,12 @@ export default function LoginEmail() {
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientButton}
               >
-                <Text style={styles.buttonText}>INICIAR SESIÓN</Text>
+                <Text style={styles.buttonText}>
+                  {loading ? "INGRESANDO..." : "INICIAR SESIÓN"}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* DIVISOR CREAR CUENTA */}
             <View style={styles.dividerContainer}>
               <View style={styles.line} />
               <TouchableOpacity onPress={() => router.push("/register")}>
@@ -74,10 +121,8 @@ export default function LoginEmail() {
               </TouchableOpacity>
               <View style={styles.line} />
             </View>
-
           </View>
         </View>
-
       </View>
     </Background>
   );
@@ -99,7 +144,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Fondo sutil traslúcido
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     width: '90%',
     padding: 25,
     borderRadius: 35,
@@ -107,7 +152,7 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   inputContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)', // Inputs más claros
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     width: '100%',
     height: 60,
     borderRadius: 30,
@@ -119,7 +164,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#FFF', // Texto dentro del input blanco según imagen
+    color: '#FFF',
     fontWeight: '600',
   },
   forgotPassword: {

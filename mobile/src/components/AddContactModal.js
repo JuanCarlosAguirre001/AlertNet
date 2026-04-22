@@ -1,30 +1,46 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Alert
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AddContactModal({ visible, onClose, onSave }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
-  const handleSave = () => {
-    if (name && phone) {
-      onSave({ name, phone });
-      setName('');
-      setPhone('');
-      onClose();
-    } else {
-      alert("Por favor rellena todos los campos");
+  const handleSave = async () => {
+    if (!name.trim() || !phone.trim()) {
+      Alert.alert("Campos incompletos", "Por favor rellena nombre y teléfono.");
+      return;
     }
+
+    await onSave({
+      name: name.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+    });
+
+    setName('');
+    setPhone('');
+    setEmail('');
   };
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
       >
         <View style={styles.modalContainer}>
-          {/* Header del Modal */}
           <View style={styles.header}>
             <Text style={styles.title}>Nuevo Contacto</Text>
             <TouchableOpacity onPress={onClose}>
@@ -32,23 +48,32 @@ export default function AddContactModal({ visible, onClose, onSave }) {
             </TouchableOpacity>
           </View>
 
-          {/* Formulario */}
           <View style={styles.form}>
             <Text style={styles.label}>Nombre Completo</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="Ej. Juan Pérez" 
+            <TextInput
+              style={styles.input}
+              placeholder="Ej. Juan Pérez"
               value={name}
               onChangeText={setName}
             />
 
             <Text style={styles.label}>Teléfono</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="+591 ..." 
+            <TextInput
+              style={styles.input}
+              placeholder="+591 ..."
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
+            />
+
+            <Text style={styles.label}>Correo (opcional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="correo@gmail.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
             />
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -72,7 +97,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     padding: 25,
-    minHeight: 400,
+    minHeight: 430,
   },
   header: {
     flexDirection: 'row',

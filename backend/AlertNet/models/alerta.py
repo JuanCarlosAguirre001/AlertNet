@@ -1,19 +1,22 @@
 from django.db import models
 from .usuario import Usuario
-from .ubicacion import Ubicacion
+
+
 
 class Alerta(models.Model):
-    ESTADOS = (
+    ESTADO_CHOICES = [
         ('activa', 'Activa'),
-        ('atendida', 'Atendida'),
         ('cancelada', 'Cancelada'),
-    )
+        ('finalizada', 'Finalizada'),
+    ] 
 
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
-    mensaje = models.TextField(blank=True, null=True)
-    estado = models.CharField(max_length=10, choices=ESTADOS, default='activa')
-    fecha = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Alerta de {self.usuario} - {self.estado}"
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE) 
+    latitud = models.DecimalField(max_digits=10, decimal_places=8) 
+    longitud = models.DecimalField(max_digits=11, decimal_places=8) 
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activa') 
+    fecha_inicio = models.DateTimeField(auto_now_add=True) 
+    fecha_fin = models.DateTimeField(null=True, blank=True) 
+    
+    
+    class Meta:
+        db_table = "alertas"

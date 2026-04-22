@@ -1,0 +1,17 @@
+##Reconstruir y levantar todo limpio
+
+# Bajamos el servidor
+docker-compose down
+
+# Reconstruimos los archivos y levantamos el servidor
+docker-compose up --build -d
+
+# limpiamos toda la BD general y la dejara vacia 
+docker-compose exec mysql mysql -u root -pAlert1234 -e "DROP DATABASE IF EXISTS alertnet; CREATE DATABASE alertnet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+
+## Migraciones
+
+docker-compose exec backend python manage.py makemigrations AlertNet
+
+docker-compose exec backend python manage.py migrate
