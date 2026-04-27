@@ -1,7 +1,11 @@
-from rest_framework import viewsets
-from AlertNet.models import Notificacion
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from AlertNet.models.notificacion import Notificacion
 from AlertNet.serializers import NotificacionSerializer
 
-class NotificacionViewSet(viewsets.ModelViewSet):
-    queryset = Notificacion.objects.all().order_by('-id')
+class NotificacionListCreateAPIView(ListCreateAPIView):
+    queryset = Notificacion.objects.all()
+    serializer_class = NotificacionSerializer
+
+class NotificacionDetailAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Notificacion.objects.all()
     serializer_class = NotificacionSerializer

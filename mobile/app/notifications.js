@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import {View,Text,StyleSheet,ScrollView,TouchableOpacity} from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 
@@ -7,50 +13,35 @@ import Background from "../src/components/Background";
 import Header from "../src/components/Header";
 import BottomMenu from "../src/components/BottomMenu";
 
+import { notificacionService } from "../services/notificacionService";
+
 export default function NotificationsScreen() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      tipo: "alerta",
-      titulo: "Alerta de emergencia",
-      descripcion: "Juana activó una alerta y compartió su ubicación.",
-      tiempo: "Hace 2 min",
-      leida: false,
-    },
-    {
-      id: 2,
-      tipo: "ubicacion",
-      titulo: "Ubicación compartida",
-      descripcion: "Tu ubicación fue enviada a tus contactos de confianza.",
-      tiempo: "Hace 5 min",
-      leida: false,
-    },
-    {
-      id: 3,
-      tipo: "finalizada",
-      titulo: "Alerta finalizada",
-      descripcion: "La alerta fue desactivada correctamente.",
-      tiempo: "Hace 10 min",
-      leida: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    cargarNotificaciones();
+  }, []);
+
+  const cargarNotificaciones = async () => {
+    try {
+      const data = await notificacionService.getNotificaciones();
+      console.log("NOTIFICACIONES BACKEND:", data);
+      setNotifications(data);
+    } catch (error) {
+      console.log("ERROR CARGANDO NOTIFICACIONES:", error);
+    }
+  };
 
   const marcarComoLeida = (id) => {
     setNotifications((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, leida: true } : item
+        item.id === id ? { ...item, entregado: true } : item
       )
     );
   };
 
   const limpiarLeidas = () => {
-    setNotifications((prev) => prev.filter((item) => !item.leida));
-  };
-
-  const getIconName = (tipo) => {
-    if (tipo === "alerta") return "warning";
-    if (tipo === "ubicacion") return "location";
-    return "checkmark-circle";
+    setNotifications((prev) => prev.filter((item) => !item.entregado));
   };
 
   return (
@@ -71,7 +62,11 @@ export default function NotificationsScreen() {
         <ScrollView contentContainerStyle={styles.scroll}>
           {notifications.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Ionicons name="notifications-off-outline" size={42} color="#894949" />
+              <Ionicons
+                name="notifications-off-outline"
+                size={42}
+                color="#894949"
+              />
               <Text style={styles.emptyTitle}>Sin notificaciones</Text>
               <Text style={styles.emptyText}>
                 Aquí aparecerán las alertas y avisos importantes.
@@ -83,14 +78,14 @@ export default function NotificationsScreen() {
                 key={item.id}
                 style={[
                   styles.card,
-                  !item.leida && styles.unreadCard
+                  !item.entregado && styles.unreadCard,
                 ]}
                 onPress={() => marcarComoLeida(item.id)}
                 activeOpacity={0.85}
               >
                 <View style={styles.iconContainer}>
                   <Ionicons
-                    name={getIconName(item.tipo)}
+                    name="notifications"
                     size={24}
                     color="#B42424"
                   />
@@ -98,14 +93,20 @@ export default function NotificationsScreen() {
 
                 <View style={styles.content}>
                   <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>{item.titulo}</Text>
+                    <Text style={styles.cardTitle}>
+                      Alerta enviada
+                    </Text>
 
-                    {!item.leida && <View style={styles.unreadDot} />}
+                    {!item.entregado && <View style={styles.unreadDot} />}
                   </View>
 
-                  <Text style={styles.cardDesc}>{item.descripcion}</Text>
+                  <Text style={styles.cardDesc}>
+                    Se notificó a {item.nombre_contacto || "tu contacto"} sobre tu alerta de emergencia.
+                  </Text>
 
-                  <Text style={styles.time}>{item.tiempo}</Text>
+                  <Text style={styles.time}>
+                    Vía: {item.medio}
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))

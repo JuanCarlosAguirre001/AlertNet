@@ -12,13 +12,11 @@ class AlertaListCreateAPIView(APIView):
     def get(self, request):
         usuario_id = request.query_params.get("usuario_id")
 
-        if not usuario_id:
-            return Response(
-                {"error": "Se requiere usuario_id"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if usuario_id:
+            alertas = Alerta.objects.filter(usuario_id=usuario_id).order_by("-fecha")
+        else:
+            alertas = Alerta.objects.all().order_by("-fecha")
 
-        alertas = Alerta.objects.filter(usuario_id=usuario_id).order_by("-fecha")
         serializer = AlertaSerializer(alertas, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -27,12 +25,18 @@ class AlertaListCreateAPIView(APIView):
         mensaje = request.data.get("mensaje", "")
 
         if not usuario_id:
-            return Response({"error": "Se requiere usuario_id"}, status=400)
+            return Response(
+                {"error": "Se requiere usuario_id"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         usuario = Usuario.objects.filter(id=usuario_id).first()
 
         if not usuario:
-            return Response({"error": "Usuario no encontrado"}, status=404)
+            return Response(
+                {"error": "Usuario no encontrado"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         alerta = Alerta.objects.create(
             usuario=usuario,
