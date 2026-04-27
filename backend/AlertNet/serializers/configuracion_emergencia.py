@@ -12,7 +12,7 @@ class ConfigEmergenciaSerializer(serializers.ModelSerializer):
     usuario = UsuarioMinSerializer(read_only=True)
     class Meta:
         model=ConfiguracionEmergencia
-        fields= ["usuario", "boton_volumen", "notif_instantanea", "compartir_tiempo_real", "mensaje_predeterminado"]
+        fields= ["usuario", "boton_volumen", "notif_instantanea", "compartir_tiempo_real", "usar_mensaje_personalizado", "mensaje_predeterminado"]
     
 
 

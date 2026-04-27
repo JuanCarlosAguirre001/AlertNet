@@ -1,9 +1,15 @@
 import api from "./api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const STORAGE_KEY = "usuarioLogueado";
 
 export const contactService = {
   getContactos: async () => {
     try {
-      const response = await api.get("contacto/");
+      const usuario = await AsyncStorage.getItem(STORAGE_KEY);
+      const user = JSON.parse(usuario);
+
+      const response = await api.get(`contactos/?usuario_id=${user.id}`);
       console.log("CONTACTOS OBTENIDOS:", response.data);
       return response.data;
     } catch (error) {
@@ -15,8 +21,8 @@ export const contactService = {
 
   createContacto: async (contactData) => {
     try {
-      console.log("ENVIANDO CONTACTO:", contactData);
-      const response = await api.post("contacto/", contactData);
+      console.log("ENVIANDO CONTACTO NUEVO:", contactData);
+      const response = await api.post("contactos/", contactData);
       console.log("CONTACTO CREADO:", response.data);
       return response.data;
     } catch (error) {
@@ -28,7 +34,10 @@ export const contactService = {
 
   deleteContacto: async (id) => {
     try {
-      await api.delete(`contactos/${id}/`);
+      const usuario = await AsyncStorage.getItem(STORAGE_KEY);
+      const user = JSON.parse(usuario);
+
+      await api.delete(`contactos/${id}/?usuario_id=${user.id}`);
       return true;
     } catch (error) {
       console.log("DELETE CONTACTO ERROR STATUS:", error?.response?.status);

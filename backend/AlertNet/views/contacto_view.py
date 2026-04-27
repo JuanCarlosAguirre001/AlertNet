@@ -1,31 +1,69 @@
-# AlertNet/views/contacto_api.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+
 from ..models import Contacto, Usuario
 from ..serializers import ContactoSerializer, ContactoListSerializer
 
+
 class ContactoListCreateAPIView(APIView):
-    """
-    GET /api/contactos/?usuario_id=...
-    POST /api/contactos/  body: { usuario_id, nombre_contacto, telefono_contacto, prioridad? }
-    """
     def get(self, request):
-        usuario_id = request.data.get('usuario_id')
+        usuario_id = request.query_params.get("usuario_id")
         if not usuario_id:
-            return Response({"error": "Se requiere el campo 'usuario_id "}, status=status.HTTP_400_BAD_REQUEST)
-        contactos = Contacto.objects.filter(usuario_id=usuario_id, is_active=True).order_by('prioridad', 'nombre_contacto')
+            return Response(
+                {"error": "Se requiere el campo 'usuario_id'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        contactos = Contacto.objects.filter(
+            usuario_id=usuario_id,
+            is_active=True
+        ).order_by("prioridad", "nombre_contacto")
+
         serializer = ContactoListSerializer(contactos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = ContactoSerializer(data=request.data)
-        usuario_id = serializer.validated_data.pop('usuario_id', None)
+        usuario_id = request.data.get("usuario_id")
         if not usuario_id:
-            return Response({"error":"Se requiere usuario_id"}, status=400)
-        usuario = Usuario.objects.get(pk=usuario_id)
-        contacto = Contacto.objects.create(usuario=usuario, **serializer.validated_data)
+            return Response(
+                {"error": "Se requiere usuario_id"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        usuario = get_object_or_404(Usuario, pk=usuario_id)
+
+        contactos_activos = Contacto.objects.filter(
+            usuario=usuario,
+            is_active=True
+        ).count()
+
+        if contactos_activos >= 3:
+            return Response(
+                {
+                    "error": "Solo puedes agregar hasta 3 contactos en la versión gratuita. Mejora a Premium para agregar más contactos."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = request.data.copy()
+        data.pop("usuario_id", None)
+
+        serializer = ContactoSerializer(data=data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        contacto = Contacto.objects.create(
+            usuario=usuario,
+            **serializer.validated_data
+        )
+
+        return Response(
+            ContactoListSerializer(contacto).data,
+            status=status.HTTP_201_CREATED
+        )
+
 
 class ContactoDetailAPIView(APIView):
 
@@ -36,9 +74,13 @@ class ContactoDetailAPIView(APIView):
         return get_object_or_404(qs, pk=pk, is_active=True)
 
     def get(self, request, pk):
-        usuario_id = request.query_params.get('usuario_id')
+        usuario_id = request.query_params.get("usuario_id")
         if not usuario_id:
-            return Response({"error": "Se requiere usuario_id como query param."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Se requiere usuario_id como query param."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         contacto = self.get_object(pk, usuario_id=usuario_id)
         serializer = ContactoListSerializer(contacto)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -50,32 +92,45 @@ class ContactoDetailAPIView(APIView):
         return self._update(request, pk, partial=False)
 
     def _update(self, request, pk, partial):
-        # validar usuario_id en body
-        usuario_id = request.data.get('usuario_id')
+        usuario_id = request.data.get("usuario_id")
         if not usuario_id:
-            return Response({"error": "Se requiere usuario_id en el body."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Se requiere usuario_id en el body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # obtener el contacto asegurando que pertenece al usuario y está activo
-        contacto = get_object_or_404(Contacto, pk=pk, usuario_id=usuario_id, is_active=True)
+        contacto = get_object_or_404(
+            Contacto,
+            pk=pk,
+            usuario_id=usuario_id,
+            is_active=True
+        )
 
-        # serializar con la instancia existente (para update)
-        serializer = ContactoSerializer(contacto, data=request.data, partial=partial)
+        data = request.data.copy()
+        data.pop("usuario_id", None)
+
+        serializer = ContactoSerializer(contacto, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
-
-        # evitar cambiar el usuario por seguridad
-        serializer.validated_data.pop('usuario_id', None)
-
-        # guardar cambios
         serializer.save()
 
-        # devolver representación ligera
         return Response(ContactoListSerializer(contacto).data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
-        usuario_id = request.query_params.get('usuario_id') or request.data.get('usuario_id')
+        usuario_id = request.query_params.get("usuario_id") or request.data.get("usuario_id")
         if not usuario_id:
-            return Response({"error": "Se requiere usuario_id para eliminar."}, status=status.HTTP_400_BAD_REQUEST)
-        contacto = get_object_or_404(Contacto, pk=pk, usuario_id=usuario_id, is_active=True)
+            return Response(
+                {"error": "Se requiere usuario_id para eliminar."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        contacto = get_object_or_404(
+            Contacto,
+            pk=pk,
+            usuario_id=usuario_id,
+            is_active=True
+        )
+
         contacto.is_active = False
         contacto.save()
+
         return Response(status=status.HTTP_204_NO_CONTENT)

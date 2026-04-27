@@ -4,3 +4,7 @@ djangorestframework
 python-dotenv
 drf-spectacular
 django-cors-headers
+
+channels
+channels-redis
+daphne

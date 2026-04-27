@@ -11,7 +11,7 @@ class Contacto(models.Model):
     is_active = models.BooleanField(default=True) 
 
     class Meta:
-        db_table = "contactos"
+        db_table = "AlertNet_contacto"
 
     def __str__(self):
         return f"{self.nombre_contacto} (Amigo de {self.usuario.nombre_completo})"

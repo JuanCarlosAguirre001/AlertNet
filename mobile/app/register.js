@@ -4,11 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Componentes reutilizados
 import Background from "../src/components/Background";
 import Header from "../src/components/Header";
 
-// Service
 import { authService } from "../services/authService";
 
 export default function RegisterScreen() {
@@ -21,9 +19,32 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [showCountries, setShowCountries] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState({
+    flag: "🇧🇴",
+    code: "+591",
+    name: "Bolivia",
+  });
+
+  const countries = [
+    { flag: "🇧🇴", code: "+591", name: "Bolivia" },
+    { flag: "🇦🇷", code: "+54", name: "Argentina" },
+    { flag: "🇧🇷", code: "+55", name: "Brasil" },
+    { flag: "🇨🇱", code: "+56", name: "Chile" },
+    { flag: "🇵🇪", code: "+51", name: "Perú" },
+    { flag: "🇺🇸", code: "+1", name: "Estados Unidos" },
+  ];
+
   const handleRegister = async () => {
-    if (!nombreCompleto.trim() || !correo.trim() || !telefono.trim() || !password.trim()) {
+    const cleanPhone = telefono.replace(/\s/g, "");
+
+    if (!nombreCompleto.trim() || !correo.trim() || !cleanPhone.trim() || !password.trim()) {
       Alert.alert("Campos incompletos", "Por favor llena todos los campos.");
+      return;
+    }
+
+    if (cleanPhone.startsWith("+")) {
+      Alert.alert("Formato incorrecto", "Escribe solo el número, sin código de país.");
       return;
     }
 
@@ -33,7 +54,7 @@ export default function RegisterScreen() {
       const userData = {
         nombre_completo: nombreCompleto.trim(),
         correo: correo.trim().toLowerCase(),
-        telefono: telefono.trim(),
+        telefono: `${selectedCountry.code}${cleanPhone}`,
         password: password.trim(),
       };
 
@@ -55,12 +76,16 @@ export default function RegisterScreen() {
 
       if (error?.email) {
         Alert.alert("Error", Array.isArray(error.email) ? error.email[0] : String(error.email));
+      } else if (error?.correo) {
+        Alert.alert("Error", Array.isArray(error.correo) ? error.correo[0] : String(error.correo));
       } else if (error?.telefono) {
         Alert.alert("Error", Array.isArray(error.telefono) ? error.telefono[0] : String(error.telefono));
       } else if (error?.nombre_completo) {
         Alert.alert("Error", Array.isArray(error.nombre_completo) ? error.nombre_completo[0] : String(error.nombre_completo));
       } else if (error?.password) {
         Alert.alert("Error", Array.isArray(error.password) ? error.password[0] : String(error.password));
+      } else if (error?.error) {
+        Alert.alert("Error", String(error.error));
       } else {
         Alert.alert("Error", "No se pudo crear la cuenta.");
       }
@@ -101,15 +126,52 @@ export default function RegisterScreen() {
                 />
               </View>
 
-              <View style={styles.inputContainer}>
-                <TextInput
-                  placeholder="Teléfono"
-                  placeholderTextColor="#949494"
-                  keyboardType="phone-pad"
-                  style={styles.input}
-                  value={telefono}
-                  onChangeText={setTelefono}
-                />
+              <View style={styles.phoneWrapper}>
+                <View style={styles.phoneRow}>
+                  <TouchableOpacity
+                    style={styles.countrySelector}
+                    onPress={() => setShowCountries(!showCountries)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.countrySelectorText}>
+                      {selectedCountry.flag} {selectedCountry.code}
+                    </Text>
+                    <Ionicons
+                      name={showCountries ? "chevron-up" : "chevron-down"}
+                      size={15}
+                      color="#949494"
+                    />
+                  </TouchableOpacity>
+
+                  <TextInput
+                    placeholder="Teléfono"
+                    placeholderTextColor="#949494"
+                    keyboardType="phone-pad"
+                    style={styles.phoneInput}
+                    value={telefono}
+                    onChangeText={setTelefono}
+                  />
+                </View>
+
+                {showCountries && (
+                  <View style={styles.countryDropdown}>
+                    {countries.map((item) => (
+                      <TouchableOpacity
+                        key={`${item.code}-${item.name}`}
+                        style={styles.countryItem}
+                        onPress={() => {
+                          setSelectedCountry(item);
+                          setShowCountries(false);
+                        }}
+                      >
+                        <Text style={styles.countryItemText}>
+                          {item.flag} {item.name}
+                        </Text>
+                        <Text style={styles.countryCodeText}>{item.code}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
 
               <View style={styles.inputContainer}>
@@ -197,6 +259,64 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '600',
   },
+
+  phoneWrapper: {
+    width: '100%',
+  },
+  phoneRow: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    width: '100%',
+    height: 65,
+    borderRadius: 35,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  countrySelector: {
+    height: 45,
+    paddingHorizontal: 10,
+    borderRadius: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginRight: 8,
+  },
+  countrySelectorText: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#FFF',
+    fontWeight: '600',
+  },
+  countryDropdown: {
+    marginTop: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 18,
+    maxHeight: 175,
+    overflow: 'hidden',
+  },
+  countryItem: {
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  countryItemText: {
+    fontSize: 13,
+    color: '#333',
+    fontWeight: '700',
+  },
+  countryCodeText: {
+    fontSize: 13,
+    color: '#B42424',
+    fontWeight: '900',
+  },
+
   buttonWrapper: {
     width: '75%',
     height: 65,

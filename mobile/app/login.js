@@ -4,11 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Componentes reutilizados
 import Background from "../src/components/Background";
 import Header from "../src/components/Header";
-
-// Service
 import { authService } from "../services/authService";
 
 export default function LoginEmail() {
@@ -89,7 +86,11 @@ export default function LoginEmail() {
                 onChangeText={setPassword}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#CCC" />
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="#CCC"
+                />
               </TouchableOpacity>
             </View>
 

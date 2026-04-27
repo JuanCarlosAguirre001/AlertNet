@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator
-} from 'react-native';
+import {View,Text,StyleSheet,ScrollView,TouchableOpacity,Image,Alert,ActivityIndicator} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Background from "../src/components/Background";
@@ -39,13 +30,8 @@ export default function ContactsScreen() {
 
       const data = await contactService.getContactos();
 
-      const contactosDelUsuario = data.filter(
-        (contacto) =>
-          String(contacto.usuario) === String(usuario.id_usuario || usuario.id)
-      );
-
-      console.log("CONTACTOS DEL USUARIO:", contactosDelUsuario);
-      setListaContactos(contactosDelUsuario);
+      console.log("CONTACTOS DEL USUARIO:", data);
+      setListaContactos(data);
     } catch (error) {
       console.log("ERROR CARGANDO CONTACTOS:", error);
       console.log("ERROR CARGANDO CONTACTOS STRING:", JSON.stringify(error, null, 2));
@@ -54,6 +40,8 @@ export default function ContactsScreen() {
         Alert.alert("Error", String(error.detail));
       } else if (error?.message) {
         Alert.alert("Error", String(error.message));
+      } else if (error?.error) {
+        Alert.alert("Error", String(error.error));
       } else {
         Alert.alert("Error", "No se pudieron cargar los contactos.");
       }
@@ -77,15 +65,31 @@ export default function ContactsScreen() {
         return;
       }
 
+      if (!newContact.name || newContact.name.trim() === "") {
+        Alert.alert("Error", "El nombre del contacto es obligatorio.");
+        return;
+      }
+
+      if (!newContact.phone || newContact.phone.trim() === "") {
+        Alert.alert("Error", "El teléfono del contacto es obligatorio.");
+        return;
+      }
+      if (listaContactos.length >= 3) {
+          Alert.alert(
+            "Límite alcanzado",
+            "Solo puedes agregar hasta 3 contactos en la versión gratuita. Mejora a Premium para agregar más contactos."
+          );
+          return;
+        }
+
       const payload = {
-        usuario: usuario.id_usuario || usuario.id,
-        nombre: newContact.name,
-        telefono: newContact.phone,
-        email: newContact.email || "",
-        es_principal: false,
+        usuario_id: usuario.id,
+        nombre_contacto: newContact.name.trim(),
+        telefono_contacto: newContact.phone.trim(),
+        prioridad: 1,
       };
 
-      console.log("PAYLOAD ENVIADO:", payload);
+      console.log("PAYLOAD ENVIADO NUEVO:", payload);
 
       await contactService.createContacto(payload);
 
@@ -96,52 +100,40 @@ export default function ContactsScreen() {
       console.log("ERROR AL AGREGAR CONTACTO:", error);
       console.log("ERROR AL AGREGAR CONTACTO STRING:", JSON.stringify(error, null, 2));
 
-      if (error?.usuario) {
-        Alert.alert("Error", Array.isArray(error.usuario) ? error.usuario[0] : String(error.usuario));
-      } else if (error?.nombre) {
-        Alert.alert("Error", Array.isArray(error.nombre) ? error.nombre[0] : String(error.nombre));
-      } else if (error?.telefono) {
-        Alert.alert("Error", Array.isArray(error.telefono) ? error.telefono[0] : String(error.telefono));
-      } else if (error?.email) {
-        Alert.alert("Error", Array.isArray(error.email) ? error.email[0] : String(error.email));
-      } else if (error?.detail) {
-        Alert.alert("Error", String(error.detail));
-      } else if (error?.message) {
-        Alert.alert("Error", String(error.message));
+      if (error?.nombre_contacto) {
+        Alert.alert("Error", Array.isArray(error.nombre_contacto) ? error.nombre_contacto[0] : String(error.nombre_contacto));
+      } else if (error?.telefono_contacto) {
+        Alert.alert("Error", Array.isArray(error.telefono_contacto) ? error.telefono_contacto[0] : String(error.telefono_contacto));
+      } else if (error?.usuario_id) {
+        Alert.alert("Error", Array.isArray(error.usuario_id) ? error.usuario_id[0] : String(error.usuario_id));
+      } else if (error?.error) {
+        Alert.alert("Error", String(error.error));
       } else {
         Alert.alert("Error", "No se pudo guardar el contacto.");
       }
     }
   };
 
-  const handleDeleteContact = (contactId) => {
-    Alert.alert(
-      "Eliminar contacto",
-      "¿Seguro que deseas eliminar este contacto?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await contactService.deleteContacto(contactId);
-              await cargarContactos();
-              Alert.alert("Éxito", "Contacto eliminado correctamente.");
-            } catch (error) {
-              console.log("ERROR ELIMINANDO CONTACTO:", error);
-              Alert.alert("Error", "No se pudo eliminar el contacto.");
-            }
-          }
-        }
-      ]
-    );
-  };
+  const handleDeleteContact = async (contactId) => {
+  try {
+    console.log("CLICK ELIMINAR ID:", contactId);
+    await contactService.deleteContacto(contactId);
+
+    console.log("CONTACTO ELIMINADO CORRECTAMENTE");
+    await cargarContactos();
+
+    Alert.alert("Éxito", "Contacto eliminado correctamente.");
+  } catch (error) {
+    console.log("ERROR ELIMINANDO CONTACTO:", error);
+    console.log("ERROR ELIMINANDO CONTACTO STRING:", JSON.stringify(error, null, 2));
+    Alert.alert("Error", "No se pudo eliminar el contacto.");
+  }
+};
 
   return (
     <Background>
       <View style={styles.mainContainer}>
-        <Header />
+        <Header showBack={false} />
         <NotificationBell />
 
         <ScrollView
@@ -167,13 +159,13 @@ export default function ContactsScreen() {
               <View key={contact.id} style={styles.contactCard}>
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarText}>
-                    {(contact.nombre || "C").charAt(0).toUpperCase()}
+                    {(contact.nombre_contacto || "C").charAt(0).toUpperCase()}
                   </Text>
                 </View>
 
                 <View style={styles.contactInfo}>
-                  <Text style={styles.contactName}>{contact.nombre}</Text>
-                  <Text style={styles.contactPhone}>{contact.telefono}</Text>
+                  <Text style={styles.contactName}>{contact.nombre_contacto}</Text>
+                  <Text style={styles.contactPhone}>{contact.telefono_contacto}</Text>
                 </View>
 
                 <TouchableOpacity

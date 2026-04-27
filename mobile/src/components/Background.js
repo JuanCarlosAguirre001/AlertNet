@@ -5,7 +5,6 @@ import { LinearGradient } from "expo-linear-gradient";
 export default function Background({ children }) {
   return (
     <LinearGradient
-      // Ajusté los colores para que el blanco degrade hacia el rojo oscuro de AlertNet
       colors={["#FFFFFF", "#743B3B"]} 
       style={styles.container}
     >

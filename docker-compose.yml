@@ -15,17 +15,27 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
 
   backend:
     build: ./backend
     container_name: python_backend
     restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
       - ./backend:/app
     ports:
       - "8000:8000"
     depends_on:
       - mysql
+      - redis
 
   mobile:
     build: ./mobile

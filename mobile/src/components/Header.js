@@ -4,15 +4,17 @@ import { useRouter } from "expo-router";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function Header() {
+export default function Header({ showBack = true }) {
   const router = useRouter();
 
   return (
     <View style={styles.header}>
       {/* Flecha */}
-      <TouchableOpacity onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={27} color="#5a1a1a" />
-      </TouchableOpacity>
+      {showBack && (
+  <TouchableOpacity onPress={() => router.back()}>
+    <Ionicons name="arrow-back" size={24} color="black" />
+  </TouchableOpacity>
+)}
 
       {/* Texto con gradiente */}
       <MaskedView

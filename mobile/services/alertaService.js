@@ -1,15 +1,15 @@
-import api from './api';
+import api from "./api";
 
 export const alertaService = {
-  // Enviar alerta de pánico
-  enviarAlerta: async (alertaData) => {
-    const response = await api.post('alertas/', alertaData);
+  crearAlerta: async (data) => {
+    const response = await api.post("alertas/", data);
     return response.data;
   },
 
-  // Actualizar ubicación en tiempo real
-  actualizarUbicacion: async (ubicacionData) => {
-    const response = await api.post('ubicaciones/', ubicacionData);
+  finalizarAlerta: async (id) => {
+    const response = await api.patch(`alertas/${id}/`, {
+      estado: "finalizada",
+    });
     return response.data;
-  }
+  },
 };
