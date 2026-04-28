@@ -5,18 +5,30 @@ class PruebaConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         # Este método se encarga de aceptar la conexión
         await self.accept()
-        print(">>> ¡Conexión WebSocket establecida con éxito!")
+        await self.send(text_data=json.dumps({
+            'status': 'conectado',
+            'message': '¡Conexión establecida con éxito en el servidor Django!',
+            'type': 'connection_established'
+        }))
 
     async def disconnect(self, close_code):
         print(f">>> Conexión cerrada. Código: {close_code}")
 
     async def receive(self, text_data):
-        # Lógica para recibir mensajes del cliente
-        data = json.loads(text_data)
-        print(f">>> Datos recibidos: {data}")
-        
-        # Enviar respuesta al cliente
-        await self.send(text_data=json.dumps({
-            'message': 'Mensaje recibido por el servidor',
-            'data': data
-        }))
+        try:
+            # Convertimos el texto recibido a un diccionario JSON
+            data = json.loads(text_data)
+            print(f">>> Mensaje recibido del cliente: {data}")
+
+            # Eco: Respondemos al usuario con el mismo JSON que envió
+            await self.send(text_data=json.dumps({
+                'status': 'echo_response',
+                'message': 'He recibido tu mensaje',
+                'received_data': data
+            }))
+            
+        except json.JSONDecodeError:
+            # Manejo de error si el usuario no envía un JSON válido
+            await self.send(text_data=json.dumps({
+                'error': 'El formato enviado no es un JSON válido'
+            }))
