@@ -15,7 +15,7 @@ export const notificacionService = {
 };
 
 
-const WS_URL = 'ws://172.27.224.1:8000/ws/notificaciones';
+const WS_URL = 'ws://3.150.160.101:8000/ws/notificaciones';
 
 
 export const useNotificationSocket = (userId) => {
