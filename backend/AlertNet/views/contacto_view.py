@@ -2,13 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth.hashers import make_password
 from ..models import Contacto, Usuario
 from ..serializers import ContactoSerializer, ContactoListSerializer
 
 
 class ContactoListCreateAPIView(APIView):
     def get(self, request):
+   
         usuario_id = request.query_params.get("usuario_id")
         if not usuario_id:
             return Response(
@@ -25,6 +26,8 @@ class ContactoListCreateAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+  
+        data = request.data
         usuario_id = request.data.get("usuario_id")
         if not usuario_id:
             return Response(
@@ -33,9 +36,15 @@ class ContactoListCreateAPIView(APIView):
             )
 
         usuario = get_object_or_404(Usuario, pk=usuario_id)
-
+        propietario = Usuario.objects.create(
+            nombre_completo=data.get("nombre_contacto"),
+            correo=data.get("correo"),
+            telefono=data.get("telefono_contacto"),
+            password= make_password("123456")
+        )
         contactos_activos = Contacto.objects.filter(
             usuario=usuario,
+            
             is_active=True
         ).count()
 
@@ -56,6 +65,7 @@ class ContactoListCreateAPIView(APIView):
 
         contacto = Contacto.objects.create(
             usuario=usuario,
+            propietario=propietario,
             **serializer.validated_data
         )
 

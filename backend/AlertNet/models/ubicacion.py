@@ -9,4 +9,4 @@ class Ubicacion(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "AlertNet_ubicacion"
+        db_table = "ubicaciones"

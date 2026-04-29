@@ -1,6 +1,10 @@
-from django.urls import re_path
+from django.urls import path
 from .consumers import PruebaConsumer
+from .NotificacionConsumer import NotificacionConsumer
+
 
 websocket_urlpatterns = [
-    re_path(r'ws/prueba/', PruebaConsumer.as_asgi())
+    path('ws/prueba/', PruebaConsumer.as_asgi()),
+    path('ws/notificaciones/<int:contacto_id>/', NotificacionConsumer.as_asgi()),
+
 ]
