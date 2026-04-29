@@ -26,10 +26,10 @@ export default function AddContactModal({ visible, onClose, onSave }) {
   const handleSave = async () => {
     const cleanPhone = phone.replace(/\s/g, "");
 
-    if (!name.trim() || !cleanPhone.trim()) {
-      Alert.alert("Campos incompletos", "Por favor rellena nombre y teléfono.");
-      return;
-    }
+    if (!name.trim() || !cleanPhone.trim() || !email.trim() ) {
+    Alert.alert("Campos incompletos", "Nombre, teléfono, correo  son obligatorios.");
+    return;
+  }
 
     if (cleanPhone.startsWith("+")) {
       Alert.alert("Formato incorrecto", "Escribe solo el número, sin código de país.");
@@ -39,7 +39,7 @@ export default function AddContactModal({ visible, onClose, onSave }) {
     await onSave({
       name: name.trim(),
       phone: `${selectedCountry.code}${cleanPhone}`,
-      email: email.trim(),
+      correo: email.trim(),
     });
 
     setName('');
@@ -122,7 +122,7 @@ export default function AddContactModal({ visible, onClose, onSave }) {
               </View>
             )}
 
-            <Text style={styles.label}>Correo (opcional)</Text>
+            <Text style={styles.label}>Correo (obligatorio)</Text>
             <TextInput
               style={styles.input}
               placeholder=""

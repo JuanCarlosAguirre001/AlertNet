@@ -13,24 +13,23 @@ import Background from "../src/components/Background";
 import Header from "../src/components/Header";
 import BottomMenu from "../src/components/BottomMenu";
 
-import { notificacionService } from "../services/notificacionService";
+import { notificacionService, useNotificationSocket } from "../services/notificacionService";
+import { authService } from "../services/authService";
 
 export default function NotificationsScreen() {
-  const [notifications, setNotifications] = useState([]);
-
-  useEffect(() => {
-    cargarNotificaciones();
+  //const [notifications, setNotifications] = useState([]);
+  const [usuario, setUsuario] = useState(null);
+   useEffect(() => {
+    const fetchUser = async () => {
+      const u = await authService.getCurrentUser();
+      setUsuario(u);
+    };
+    fetchUser();
   }, []);
 
-  const cargarNotificaciones = async () => {
-    try {
-      const data = await notificacionService.getNotificaciones();
-      console.log("NOTIFICACIONES BACKEND:", data);
-      setNotifications(data);
-    } catch (error) {
-      console.log("ERROR CARGANDO NOTIFICACIONES:", error);
-    }
-  };
+    console.log("ID USUARIOSS",usuario?.id);
+    const { notifications, setNotifications, isConnected } = useNotificationSocket(usuario?.id);
+    console.log("NOTIFICACIONES EN EL COMPONENTE:", notifications);
 
   const marcarComoLeida = (id) => {
     setNotifications((prev) =>
@@ -43,7 +42,13 @@ export default function NotificationsScreen() {
   const limpiarLeidas = () => {
     setNotifications((prev) => prev.filter((item) => !item.entregado));
   };
-
+  if (!usuario) {
+    return (
+      <Background>
+        <Text style={{ textAlign: 'center', marginTop: 50 }}>Cargando datos del usuario...</Text>
+      </Background>
+    );
+  }
   return (
     <Background>
       <Stack.Screen options={{ headerShown: false }} />
@@ -101,7 +106,8 @@ export default function NotificationsScreen() {
                   </View>
 
                   <Text style={styles.cardDesc}>
-                    Se notificó a {item.nombre_contacto || "tu contacto"} sobre tu alerta de emergencia.
+                    
+                  {`id : ${item.id}`} {item.alerta.autor.nombre_completo} pide {item.alerta.mensaje } 
                   </Text>
 
                   <Text style={styles.time}>

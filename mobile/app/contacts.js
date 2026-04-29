@@ -69,6 +69,10 @@ export default function ContactsScreen() {
         Alert.alert("Error", "El nombre del contacto es obligatorio.");
         return;
       }
+      if (!newContact.correo || newContact.correo.trim() === "") {
+        Alert.alert("Error", "El correo del contacto es obligatorio.");
+        return;
+      }
 
       if (!newContact.phone || newContact.phone.trim() === "") {
         Alert.alert("Error", "El teléfono del contacto es obligatorio.");
@@ -85,6 +89,7 @@ export default function ContactsScreen() {
       const payload = {
         usuario_id: usuario.id,
         nombre_contacto: newContact.name.trim(),
+        correo : newContact.correo.trim(),
         telefono_contacto: newContact.phone.trim(),
         prioridad: 1,
       };
