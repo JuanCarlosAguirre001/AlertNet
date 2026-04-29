@@ -5,15 +5,17 @@ from ..models import Contacto
 class ContactoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contacto
-        fields = ['id', 'nombre_contacto', 'telefono_contacto']
+        fields = ['id', 'nombre_contacto', 'telefono_contacto', "propietario"]
+        read_only_fields = ['id']
 
 class ContactoSerializer(serializers.ModelSerializer):
     telefono_contacto = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     nombre_contacto = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    
+    propietario = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Contacto
-        fields = ['id', 'nombre_contacto', 'telefono_contacto', 'prioridad']
+        fields = ['id', 'nombre_contacto', 'telefono_contacto', 'prioridad', 'propietario']
         read_only_fields = ['id']
 
     
