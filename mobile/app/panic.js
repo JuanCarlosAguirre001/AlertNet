@@ -123,7 +123,7 @@ export default function PanicScreen() {
     return usuario?.id || usuario?.usuario_id || usuario?.id_usuario || usuario?.pk;
   };
 
-  const handleSendAlert = async () => {
+  const handleSendAlert =  async () => {
     try {
       const usuario = await authService.getCurrentUser();
       console.log("USUARIO LOGUEADO:", usuario);
@@ -175,7 +175,7 @@ export default function PanicScreen() {
       console.log("ALERTA CREADA:", alerta);
 
       const contactos = await contactService.getContactos();
-
+      console.log("CONTACTOS",contactos);
       if (contactos.length === 0) {
         Alert.alert(
           "Alerta creada",
@@ -185,7 +185,7 @@ export default function PanicScreen() {
         for (let contacto of contactos) {
           const notificacion = await notificacionService.crearNotificacion({
             alerta: alerta.id,
-            contacto: contacto.id,
+            receptor: contacto.propietario,  //cambiar por contacto.propietario
             medio: "App",
             entregado: false,
           });

@@ -10,7 +10,7 @@ export const contactService = {
       const user = JSON.parse(usuario);
 
       const response = await api.get(`contactos/?usuario_id=${user.id}`);
-      console.log("CONTACTOS OBTENIDOS:", response.data);
+      console.log("CONTACTOS OBTENIDOS:", response.data); 
       return response.data;
     } catch (error) {
       console.log("GET CONTACTOS ERROR STATUS:", error?.response?.status);
